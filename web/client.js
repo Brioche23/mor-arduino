@@ -11,6 +11,9 @@ const maxRoll_D = 12;
 const minRoll_D = 4.5;
 const lung_strappo = 11;
 const perc_threshold = 30;
+const max_turnings = 88.7394;
+const thickness = 0.4226;
+const turn_increment = 1 / 20;
 
 let roll_in_uso = 1;
 let roll_index = roll_in_uso - 1;
@@ -22,6 +25,7 @@ let roll_perc;
 let roll_D;
 //  Variabili per determinare strappi
 let contatore = 0;
+let turnings = 0;
 let dist = 0;
 let preDist;
 let deltaDist;
@@ -87,6 +91,9 @@ socket.on("distChange", (message) => {
   if (!pagamentoInviato && preDist > temp_dist)
     console.log("DISTANZA NON VALIDA");
   else {
+    //  Da mettere nel DB
+    turnings += turn_increment;
+    console.log("turnings:", turnings);
     dist = temp_dist;
     console.log("dist:", dist);
   }
@@ -183,6 +190,16 @@ function setup() {
   // lott.mousePressed(animate);
   lott.position(550, 420);
   lott.hide();
+
+  const D = 12;
+  const d = 4.5;
+  const sL = 11.5;
+  const maxL = 2300;
+  const thickness = 0.0422;
+  const minL = 0;
+  let L = 1150;
+
+  console.log("Desired: 9.0625 - Diametro:", diametro);
 }
 
 //  Esegue animazione
@@ -215,7 +232,8 @@ let raggio = 376;
 //  Pagamento
 function drawPay() {
   //  Determino Diametro e % in base a lunghezza attuale del rotolo
-  roll_D = map(roll_lung, maxRoll_L, 0, maxRoll_D, minRoll_D);
+  // roll_D = map(roll_lung, maxRoll_L, 0, maxRoll_D, minRoll_D);
+  roll_D = (thickness / PI) * ((max_turnings - turnings) * TWO_PI);
   roll_perc = map(roll_lung, maxRoll_L, 0, 100, 0);
 
   //  Se lunghezza maggiore di 0 (c'è il rotolo)
