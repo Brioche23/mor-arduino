@@ -56,7 +56,8 @@ let warning = false;
 let grazie = false;
 let shop = false;
 let info = false;
-let empty = true;
+let empty = false;
+let scegliLato = false;
 let rotolo_info;
 let pagamentoInviato = true;
 let ordineRichiesto = false;
@@ -75,11 +76,14 @@ let palette = {
 let start_frame = 0;
 let end_frame = 49;
 let didPlay = false;
-let anim;
-let lott;
-let animData;
+let anim_1;
+let anim_2;
+let div_strappo;
+let div_empty;
+let anim_roll;
+let anim_empty;
 
-// cambia lo sfondo quando il valore del potenziometro cambia
+//  Quando l'encoder viene ruotato il client riceve il numero di incrementi
 socket.on("distChange", (message) => {
   console.log("COUNTER:", message);
   contatore = message;
@@ -140,11 +144,12 @@ function preload() {
   fontMedium = loadFont("./00_assets/03_fonts/Rubik-Medium.ttf");
 
   //  SVG delle icone
-  for (let i = 0; i < 5; i++)
+  for (let i = 0; i < 7; i++)
     icons[i] = loadImage("./00_assets/01_img/icons/" + i + ".svg");
 
   //  JSON dell'animazione: Icona TP
-  animData = loadJSON("./00_assets/04_animations/tp_icon.json");
+  anim_roll = loadJSON("./00_assets/04_animations/tp_icon.json");
+  anim_empty = loadJSON("./00_assets/04_animations/empty.json");
 }
 
 //  PNG textures circolari
@@ -177,29 +182,46 @@ function setup() {
   offY = height / 2;
   bx = new Button(3, "X", 1180, 55, 50, 50, 0, 0, palette.white, 60, 0);
 
-  //  Animazione
-  lott = createDiv();
+  //  Animazione Rotolo Strappato
+  div_strappo = createDiv();
   let params = {
-    container: lott.elt,
+    container: div_strappo.elt,
     loop: false,
     autoplay: false,
-    animationData: animData,
+    animationData: anim_roll,
     renderer: "svg",
   };
-  anim = bodymovin.loadAnimation(params);
-  // lott.mousePressed(animate);
-  lott.position(550, 420);
-  lott.hide();
+  anim_1 = bodymovin.loadAnimation(params);
+  // div_strappo.mousePressed(animate);
+  div_strappo.position(550, 420);
+  div_strappo.hide();
 
-  const D = 12;
-  const d = 4.5;
-  const sL = 11.5;
-  const maxL = 2300;
-  const thickness = 0.0422;
-  const minL = 0;
-  let L = 1150;
+  //  Animazione Rotolo Vuoto
+  div_empty = createDiv();
+  div_empty.class("center");
+  div_empty.style("margin-left", "auto");
+  div_empty.style("display", "block");
+  div_empty.style("width", "50vw");
+  params = {
+    container: div_empty.elt,
+    loop: true,
+    autoplay: true,
+    animationData: anim_empty,
+    renderer: "svg",
+  };
+  anim_2 = bodymovin.loadAnimation(params);
+  div_empty.position(320, 0);
+  div_empty.hide();
 
-  console.log("Desired: 9.0625 - Diametro:", diametro);
+  // const D = 12;
+  // const d = 4.5;
+  // const sL = 11.5;
+  // const maxL = 2300;
+  // const thickness = 0.0422;
+  // const minL = 0;
+  // let L = 1150;
+
+  // console.log("Desired: 9.0625 - Diametro:", diametro);
 }
 
 //  Esegue animazione
@@ -207,7 +229,7 @@ function animate() {
   let targetFrames = [0, 0];
   if (!didPlay) didPlay = true;
   targetFrames = [start_frame, end_frame];
-  anim.playSegments([targetFrames], true);
+  anim_1.playSegments([targetFrames], true);
 }
 
 function draw() {
@@ -224,6 +246,7 @@ function draw() {
     else if (shop) drawShop();
     else if (info) drawInfo(rotolo_info);
     else if (empty) drawEmpty();
+    else if (scegliLato) drawScegliLato();
     else drawPay();
   }
 }
@@ -312,7 +335,7 @@ function drawPay() {
       ordineRichiesto = true;
     } else if (roll_lung == 0) empty = true;
   }
-  lott.show(); //  Mostro TP Icon animata
+  div_strappo.show(); //  Mostro TP Icon animata
 }
 
 //  Standby
@@ -324,7 +347,7 @@ function drawStandby() {
   fill(palette.white);
   text("Insert your credit card", 0, 0);
   pop();
-  lott.hide(); //  Nascondo animazione
+  div_strappo.hide(); //  Nascondo animazione
 }
 
 //  Warning
@@ -382,7 +405,7 @@ function drawWarning() {
   b2.display();
 
   bx.display();
-  lott.hide();
+  div_strappo.hide();
 }
 
 //  Ringrazimento
@@ -499,7 +522,7 @@ function drawShop() {
       i++;
     }
   });
-  lott.hide();
+  div_strappo.hide();
 }
 
 //  Next Page
@@ -593,7 +616,7 @@ function drawInfo(id) {
   );
   b_sub.display();
   //  Bottone per tornare indietro
-  b_arrow = new Button(8, "Arrow", 100, 55, 50, 50, 0, 0, palette.white, 60, 1);
+  b_arrow = new Button(8, "Arrow", 50, 55, 50, 50, 0, 0, palette.white, 60, 1);
   b_arrow.display();
 
   bx.display();
@@ -633,10 +656,11 @@ function drawEmpty() {
   );
   b_done.display();
 
-  lott.hide();
+  div_strappo.hide();
+  div_empty.show();
 }
 
-function cambioRotolo() {
+function cambioRotolo(direzione_scelta) {
   const d = day();
   const m = month();
   const y = year();
@@ -656,12 +680,71 @@ function cambioRotolo() {
     id: roll_in_uso,
     lunghezza: 1200,
     n_strappi: 0,
+    turnings: 0,
+    direzione: direzione_scelta,
     from: today,
   };
   console.log("Aggiorno Info DB");
   addUsedRoll(oldRoll);
   updateRotolo(newRoll);
-  empty = false;
+  //  Cambio direzione Arduino
+}
+
+function drawScegliLato() {
+  //  Testi
+  push();
+  translate(offX, offY);
+  push();
+  fill(palette.white);
+  translate(0, -100);
+  textFont(fontRegular);
+  textSize(48);
+  text("Which side are you on?", 0, -150);
+  textFont(fontLight);
+  textSize(38);
+  text("Chose the way in which you mounted your roll", 0, -100, 480);
+  pop();
+  pop();
+
+  //  Creo Bottoni
+
+  b_front = new Button(
+    11,
+    "Front",
+    offX - 350,
+    offY - 65,
+    200,
+    200,
+    0,
+    0,
+    palette.main,
+    36,
+    5
+  );
+
+  b_front.display();
+
+  b_back = new Button(
+    12,
+    "back",
+    offX + 150,
+    offY - 65,
+    200,
+    200,
+    0,
+    0,
+    palette.main,
+    36,
+    6
+  );
+  b_back.display();
+
+  push();
+  fill(palette.white);
+  textSize(48);
+  text("Front", b_front.x, b_front.y + 175);
+  text("Back", b_back.x, b_back.y + 175);
+  pop();
 }
 
 //  Determinati btns divenatno cliccabili in determinate pagine
@@ -681,10 +764,13 @@ function mouseClicked() {
     b_arrow.clicked();
   } else if (empty) {
     b_done.clicked();
+  } else if (scegliLato) {
+    b_front.clicked();
+    b_back.clicked();
   }
 
   if (warning || shop || info) bx.clicked();
-  else if (!standby && !grazie && !empty) {
+  else if (!standby && !grazie && !empty && !scegliLato) {
     console.log("Apri Shop");
     b_shop.clicked();
   }

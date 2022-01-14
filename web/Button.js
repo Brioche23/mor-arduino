@@ -110,7 +110,14 @@ class Button {
         shop = true;
         resetCircles();
       } else if (this.id == 9) shop = true;
-      else if (this.id == 10) cambioRotolo();
+      else if (this.id == 10) {
+        empty = false;
+        scegliLato = true;
+        div_empty.hide();
+      }
+      //  Fare funzione arduino che inverte il conto
+      else if (this.id == 11) cambioRotolo("Front");
+      else if (this.id == 12) cambioRotolo("Back");
     }
   }
 }

@@ -24,3 +24,7 @@ body {
 canvas {
   display: block;
 }
+
+.center {
+  margin: auto;
+}

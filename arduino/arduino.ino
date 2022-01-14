@@ -81,7 +81,7 @@ void checkEncoder () {
       if (currDt == currClk) {
         contatore++;
         //  Mostra stato di contatore
-        distance = ((2 * pi * R) / N) * contatore;
+        // distance = ((2 * pi * R) / N) * contatore;
 
         Serial.print("Contatore: ");
         Serial.println(contatore);
