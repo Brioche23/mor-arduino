@@ -37,15 +37,15 @@ async function firebaseSetup() {
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  console.log("app:", app);
+  // console.log("app:", app);
   // Initialize Database
   const myDatabase = getDatabase(app);
 
   //Reference to a specific property of the database
   const trees_ref = ref(myDatabase, "trees");
   const user_ref = ref(myDatabase, "user");
-  console.log("greetings_ref:", trees_ref);
-  console.log("user_ref:", user_ref);
+  // console.log("greetings_ref:", trees_ref);
+  // console.log("user_ref:", user_ref);
 
   //Function to update strappi value
   updateStrappi = (id, newStrappi, newSpesa) => {
@@ -59,6 +59,12 @@ async function firebaseSetup() {
     set(strappiRef, n_strappi);
     set(strappiTotRef, n_strappi_user);
     set(spesaTotRef, n_spesa_user);
+  };
+
+  updateNextRoll = (nextRoll) => {
+    const nextRollRef = ref(myDatabase, "user/dati_generici/next_roll");
+    console.log("nextRollRef:", nextRollRef);
+    set(nextRollRef, nextRoll);
   };
 
   updateLunghezza = (newLunghezza) => {
@@ -78,26 +84,16 @@ async function firebaseSetup() {
     set(usedRef, usedRoll);
   };
 
-  //   addGreeting = (properties) => {
-  //     //  Create a reference
-  //     //  Push() non crea un elemento, ma crea la posizione nel DB dove aggiungere un elemento
-  //     const greetingRef = push(greetings_ref);
-
-  //     //  add data to DB
-  //     set(greetingRef, properties);
-  //   };
-
-  //    Function to retrieve the greetings
   // onValue(ref, function) monitors a ref
   //  Snapshot value of the ref in that moment
   onValue(trees_ref, (snapshot) => {
     allTrees = snapshot.val();
-    console.log("allTrees:", allTrees);
+    console.table(allTrees);
   });
 
   onValue(user_ref, (snapshot) => {
     allUsers = snapshot.val();
-    console.log("allUsers:", allUsers);
+    console.table(allUsers);
   });
 }
 

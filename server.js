@@ -107,4 +107,18 @@ io.on("connection", (socket) => {
       if (err) return console.log("Error on write: ", err.message);
     });
   });
+
+  socket.on("direzioneFront", () => {
+    serial.write("direzioneFront\n", (err) => {
+      console.log("Cambia Direzione: Front");
+      if (err) return console.log("Error on write: ", err.message);
+    });
+  });
+
+  socket.on("direzioneBack", () => {
+    serial.write("direzioneBack\n", (err) => {
+      console.log("Cambia Direzione: Back");
+      if (err) return console.log("Error on write: ", err.message);
+    });
+  });
 });

@@ -16,13 +16,14 @@ const thickness = 0.4226;
 const turn_increment = 1 / 20;
 
 let roll_in_uso = 1;
+let roll_direzione = "front";
 let roll_index = roll_in_uso - 1;
 let next_roll = 2;
 let oldRoll = {};
 
-let roll_lung;
-let roll_perc;
-let roll_D;
+let roll_lung = 1200;
+let roll_perc = 100;
+let roll_D = 120;
 //  Variabili per determinare strappi
 let contatore = 0;
 let turnings = 0;
@@ -64,7 +65,7 @@ let ordineRichiesto = false;
 let treesLoaded = false;
 
 // Palette colori
-let palette = {
+const palette = {
   main: "#023A2F",
   white: "#FFFBF3",
   base: "#939960",
@@ -72,16 +73,23 @@ let palette = {
   premium: "#ED824C",
 };
 
+const sizes = {
+  big: 60,
+  medium: 48,
+  small: 38,
+};
+
 //  Animazione
 let start_frame = 0;
 let end_frame = 49;
 let didPlay = false;
 let anim_1;
-let anim_2;
 let div_strappo;
 let div_empty;
+let div_card;
 let anim_roll;
 let anim_empty;
+let anim_card;
 
 //  Quando l'encoder viene ruotato il client riceve il numero di incrementi
 socket.on("distChange", (message) => {
@@ -150,6 +158,7 @@ function preload() {
   //  JSON dell'animazione: Icona TP
   anim_roll = loadJSON("./00_assets/04_animations/tp_icon.json");
   anim_empty = loadJSON("./00_assets/04_animations/empty.json");
+  anim_card = loadJSON("./00_assets/04_animations/card.json");
 }
 
 //  PNG textures circolari
@@ -175,12 +184,12 @@ function setup() {
   imageMode(CORNER);
   rectMode(CENTER);
 
-  //  Devinizione variabili
+  //  Definizione variabili
   preDist = dist;
   trees = data.trees;
   offX = width / 2;
   offY = height / 2;
-  bx = new Button(3, "X", 1180, 55, 50, 50, 0, 0, palette.white, 60, 0);
+  bx = new Button(3, "X", 1180, 55, 50, 50, 0, 0, palette.white, sizes.big, 0);
 
   //  Animazione Rotolo Strappato
   div_strappo = createDiv();
@@ -213,15 +222,22 @@ function setup() {
   div_empty.position(320, 0);
   div_empty.hide();
 
-  // const D = 12;
-  // const d = 4.5;
-  // const sL = 11.5;
-  // const maxL = 2300;
-  // const thickness = 0.0422;
-  // const minL = 0;
-  // let L = 1150;
-
-  // console.log("Desired: 9.0625 - Diametro:", diametro);
+  //  Animazione Card
+  div_card = createDiv();
+  div_card.class("center");
+  div_card.style("margin-left", "auto");
+  div_card.style("display", "block");
+  div_card.style("width", "43vw");
+  params = {
+    container: div_card.elt,
+    loop: true,
+    autoplay: true,
+    animationData: anim_card,
+    renderer: "svg",
+  };
+  anim_3 = bodymovin.loadAnimation(params);
+  div_card.position(380, 140);
+  div_card.hide();
 }
 
 //  Esegue animazione
@@ -239,6 +255,10 @@ function draw() {
     roll_lung = allUsers.rotolo_in_uso.lunghezza;
     roll_in_uso = allUsers.rotolo_in_uso.id;
     roll_index = roll_in_uso - 1;
+    roll_direzione = allUsers.rotolo_in_uso.direzione;
+    next_roll = allUsers.dati_generici.next_roll;
+    turnings = allUsers.rotolo_in_uso.turnings;
+    //  Cambio direzione in Arduino anche qua? TEST!!
     //  Cambio schermate in base a sentinelle
     if (standby) drawStandby();
     else if (warning) drawWarning();
@@ -261,7 +281,7 @@ function drawPay() {
 
   //  Se lunghezza maggiore di 0 (c'è il rotolo)
   if (roll_lung >= 0) {
-    console.log("drawPay");
+    // console.log("drawPay");
     image(images[roll_index], 0, 0, 1280, 720); //  Texture BG
     deltaDist = dist - preDist; //  Determino Delta tra distanze
     //  Se deltaDist != 0 --> Tolgo delta a lunghezza del rotolo
@@ -309,7 +329,7 @@ function drawPay() {
     circle(1280, 0, raggio);
     translate(width / 2, 100);
     textFont(fontLight);
-    textSize(60);
+    textSize(sizes.big);
     text(trees[roll_in_uso - 1].type.toUpperCase(), 0, 0);
     pop();
     //  Dati su strappi e prezzo
@@ -324,7 +344,19 @@ function drawPay() {
     text(square_rounded, -50, spacing);
     pop();
 
-    b_shop = new Button(9, "S", 1180, 55, 50, 50, 0, 0, palette.white, 60, 4);
+    b_shop = new Button(
+      9,
+      "S",
+      1180,
+      55,
+      50,
+      50,
+      0,
+      0,
+      palette.white,
+      sizes.big,
+      4
+    );
     b_shop.display();
 
     //  Se la percentuale del rotolo va sotto una determinata soglia --> Avviso di rinnovo
@@ -335,6 +367,7 @@ function drawPay() {
       ordineRichiesto = true;
     } else if (roll_lung == 0) empty = true;
   }
+  div_card.hide();
   div_strappo.show(); //  Mostro TP Icon animata
 }
 
@@ -342,12 +375,15 @@ function drawPay() {
 function drawStandby() {
   //  Testo
   push();
-  translate(width / 2, height / 2);
-  textSize(70);
+  translate(offX, offY);
   fill(palette.white);
-  text("Insert your credit card", 0, 0);
+  translate(0, -100);
+  textFont(fontRegular);
+  textSize(sizes.medium);
+  text("Insert your credit card", 0, -150);
   pop();
   div_strappo.hide(); //  Nascondo animazione
+  div_card.show();
 }
 
 //  Warning
@@ -359,10 +395,10 @@ function drawWarning() {
   fill(palette.white);
   translate(0, -100);
   textFont(fontRegular);
-  textSize(48);
+  textSize(sizes.medium);
   text("Your roll is about to end", 0, -150);
   textFont(fontRegular);
-  textSize(38);
+  textSize(sizes.small);
   text("Less than " + 25 + "% remaning", 0, -100, 640);
   textFont(fontLight);
   text(
@@ -433,8 +469,11 @@ function confermaOrdine() {
 
 function confermaCambio(id) {
   console.log("Aggiorno Next Roll");
-  next_roll = id;
-  console.log("next_roll:", next_roll);
+  if (id != next_roll) {
+    next_roll = id;
+    console.log("next_roll:", next_roll);
+    updateNextRoll(next_roll);
+  }
   confermaOrdine();
 }
 
@@ -470,12 +509,12 @@ function drawShop() {
   translate(offX, 0);
   fill(palette.white);
   textFont(fontRegular);
-  textSize(48);
+  textSize(sizes.medium);
   text("Choose your next roll", 0, 100);
   push();
   translate(0, 515);
   text(costo_strappo + "€", 0, 100);
-  textSize(36);
+  textSize(sizes.small);
   fill(fillColor);
   text(classe.charAt(0).toUpperCase() + classe.slice(1), 0, 150);
   pop();
@@ -491,7 +530,7 @@ function drawShop() {
     0,
     0,
     palette.white,
-    60,
+    sizes.big,
     2
   );
   bl.display();
@@ -505,7 +544,7 @@ function drawShop() {
     0,
     0,
     palette.white,
-    60,
+    sizes.big,
     3
   );
   br.display();
@@ -517,7 +556,12 @@ function drawShop() {
   trees.forEach((t) => {
     if (t.class == classe) {
       let treeIndex = i + index_offset;
-      cards[i] = new TreeCard(treeIndex, t.type, 260 + 380 * i, height / 2);
+      cards[i] = new TreeCard(
+        treeIndex,
+        t.type,
+        260 + 380 * i,
+        height / 2 - 18
+      );
       cards[i].display();
       i++;
     }
@@ -554,7 +598,7 @@ let circlesMade = false;
 let circles = [];
 function drawInfo(id) {
   //  Oggetto oer le proprietà e la posizione dei cerchi
-  let properties = [
+  const properties = [
     { name: "softness", x: 190, y: 202 },
     { name: "resistence", x: 452, y: 202 },
     { name: "thickness", x: 190, y: 433 },
@@ -579,13 +623,15 @@ function drawInfo(id) {
   push();
   translate(width / 2, 100);
   textFont(fontLight);
-  textSize(60);
+  textSize(sizes.big);
   text(trees[id].type.toUpperCase(), 0, 0);
+  textSize(sizes.small);
+  text(trees[id].provenienza, 0, 50);
   pop();
   push();
   translate(1000, 210);
   textFont(fontLight);
-  textSize(36);
+  textSize(sizes.small);
   text(
     trees[id].class.charAt(0).toUpperCase() + trees[id].class.slice(1),
     0,
@@ -596,7 +642,7 @@ function drawInfo(id) {
   fill(palette.white);
   text(costo_strappo + " €", 0, 80);
   textFont(fontRegular);
-  textSize(36);
+  textSize(sizes.small);
   fill(palette.white);
   text("per sheet", 0, 120);
   pop();
@@ -611,12 +657,24 @@ function drawInfo(id) {
     fillColor,
     fillColor,
     palette.main,
-    48,
+    sizes.medium,
     "no"
   );
   b_sub.display();
   //  Bottone per tornare indietro
-  b_arrow = new Button(8, "Arrow", 50, 55, 50, 50, 0, 0, palette.white, 60, 1);
+  b_arrow = new Button(
+    8,
+    "Arrow",
+    50,
+    55,
+    50,
+    50,
+    0,
+    0,
+    palette.white,
+    sizes.big,
+    1
+  );
   b_arrow.display();
 
   bx.display();
@@ -630,10 +688,10 @@ function drawEmpty() {
   fill(palette.white);
   translate(0, -100);
   textFont(fontRegular);
-  textSize(48);
+  textSize(sizes.medium);
   text("You are out of paper", 0, -150);
   textFont(fontLight);
-  textSize(38);
+  textSize(sizes.small);
   text("Change the roll before continuing", 0, -100, 640);
 
   pop();
@@ -687,7 +745,21 @@ function cambioRotolo(direzione_scelta) {
   console.log("Aggiorno Info DB");
   addUsedRoll(oldRoll);
   updateRotolo(newRoll);
+
+  cambiaDirezioneArduino(direzione_scelta);
+
+  scegliLato = false;
+}
+
+function cambiaDirezioneArduino(direzione) {
   //  Cambio direzione Arduino
+  direzione == "front"
+    ? socket.emit("direzioneFront")
+    : socket.emit("direzioneBack");
+
+  // if (direzione == "front") socket.emit("direzioneFront");
+  // else if (direzione == "back") socket.emit("direzioneBack");
+  // else console.warn("Direzione Errata");
 }
 
 function drawScegliLato() {
@@ -698,19 +770,18 @@ function drawScegliLato() {
   fill(palette.white);
   translate(0, -100);
   textFont(fontRegular);
-  textSize(48);
+  textSize(sizes.medium);
   text("Which side are you on?", 0, -150);
   textFont(fontLight);
-  textSize(38);
+  textSize(sizes.small);
   text("Chose the way in which you mounted your roll", 0, -100, 480);
   pop();
   pop();
 
   //  Creo Bottoni
-
   b_front = new Button(
     11,
-    "Front",
+    "Over",
     offX - 350,
     offY - 65,
     200,
@@ -726,7 +797,7 @@ function drawScegliLato() {
 
   b_back = new Button(
     12,
-    "back",
+    "Under",
     offX + 150,
     offY - 65,
     200,
@@ -741,9 +812,9 @@ function drawScegliLato() {
 
   push();
   fill(palette.white);
-  textSize(48);
-  text("Front", b_front.x, b_front.y + 175);
-  text("Back", b_back.x, b_back.y + 175);
+  textSize(sizes.medium);
+  text("Over", b_front.x, b_front.y + 175);
+  text("Under", b_back.x, b_back.y + 175);
   pop();
 }
 

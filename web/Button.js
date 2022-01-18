@@ -93,8 +93,10 @@ class Button {
         warning = false;
         shop = true;
       } else if (this.id == 2) confermaOrdine();
-      else if (this.id == 7) confermaCambio(rotolo_info);
-      else if (this.id == 3) {
+      else if (this.id == 7) {
+        resetCircles();
+        confermaCambio(rotolo_info);
+      } else if (this.id == 3) {
         warning = false;
         shop = false;
         info = false;
@@ -116,8 +118,8 @@ class Button {
         div_empty.hide();
       }
       //  Fare funzione arduino che inverte il conto
-      else if (this.id == 11) cambioRotolo("Front");
-      else if (this.id == 12) cambioRotolo("Back");
+      else if (this.id == 11) cambioRotolo("front");
+      else if (this.id == 12) cambioRotolo("back");
     }
   }
 }

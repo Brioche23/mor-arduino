@@ -20,7 +20,9 @@ int prevDt;
 //  var per mantenere il valore del contatore di esempio
 int contatore;
 
-const float pi = 3.141592;
+String direzione = "front"
+
+                   const float pi = 3.141592;
 
 const float D = 11.5;
 
@@ -59,7 +61,7 @@ void setup() {
 void loop() {
   btnPressed();
   checkEncoder();
-  
+
   checkIncomingData();
   azzeraCounter();
 
@@ -78,16 +80,14 @@ void checkEncoder () {
 
       //  Se il valore di dt == clk
 
-      if (currDt == currClk) {
+      if (currDt == currClk && direzione == "front") {
         contatore++;
-        //  Mostra stato di contatore
-        // distance = ((2 * pi * R) / N) * contatore;
-
-        Serial.print("Contatore: ");
-        Serial.println(contatore);
+      } else if (direzione == "back") {
+        contatore++;
       }
-    } else {
-      //contatore++;
+      //  Mostra stato di contatore
+      Serial.print("Contatore: ");
+      Serial.println(contatore);
       delay(5);
     }
     //  Aggiorna Valori
@@ -146,5 +146,22 @@ void azzeraCounter() {
       inputString = "";
       stringComplete = false;
     }
+  }
+}
+
+void cambiaDirezione() {
+  if (stringComplete) {
+    if (inputString == "direzioneFront\n")  direzione = "front";
+    else if (inputString == "direzioneBack\n") direzione = "back";
+
+    Serial.print("Direzione: ");
+    Serial.println(direzione);
+
+    // aspetta un po' per non sovraccaricare la seriale
+    delay(5);
+
+    // ora che il messaggio è stato ricevuto, resetta la stringa per essere pronto per un nuovo messaggio
+    inputString = "";
+    stringComplete = false;
   }
 }
