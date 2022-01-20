@@ -60,10 +60,8 @@ class Button {
   }
 
   style1() {
-    if (this.fill == 0) noFill();
-    else fill(this.fill);
-    if (this.stroke == 0) noStroke();
-    else stroke(this.stroke);
+    this.fill == 0 ? noFill() : fill(this.fill);
+    this.stroke == 0 ? noStroke() : stroke(this.stroke);
     rect(this.x, this.y, this.width, this.height, this.round);
     textFont(fontRegular);
     textSize(this.fontSize);
@@ -71,8 +69,9 @@ class Button {
     fill(this.textColor);
     push();
     imageMode(CENTER);
-    if (this.icon == "no") text(this.text, this.x, this.y + this.textOffset);
-    else image(icons[this.icon], this.x, this.y);
+    this.icon == "no"
+      ? text(this.text, this.x, this.y + this.textOffset)
+      : image(icons[this.icon], this.x, this.y);
     pop();
   }
 
@@ -81,7 +80,7 @@ class Button {
     fill(palette.premium);
     rect(this.x, this.y, this.width, this.height, this.round);
     textFont(fontRegular);
-    textSize(36);
+    textSize(sizes.small);
     noStroke();
     fill(palette.main);
     text(this.text, this.x, this.y + this.textOffset);
@@ -150,23 +149,43 @@ class TreeCard {
     strokeWeight(3);
     stroke(palette.white);
     rect(this.x, this.y, this.width, this.height, this.round);
+    push();
+    translate(0, 20);
     imageMode(CENTER);
-    image(texture_rounded[this.id], this.x, this.y - 75, 100, 100);
+    image(texture_rounded[this.id], this.x, this.y - 85, 130, 130);
     noStroke();
-    textSize(36);
-    textStyle(fontLight);
     fill(palette.white);
-    text(trees[this.id].type, this.x, this.y + 25);
+    textSize(sizes.small - 2);
+    textFont(fontRegular);
+    text(trees[this.id].type, this.x, this.y + 50);
+    textFont(fontLight);
+    textSize(sizes.small - 5);
+    text(trees[this.id].provenienza, this.x, this.y + 100);
 
+    pop();
+    // b_learn[this.id] = new Button(
+    //   100 + this.id,
+    //   "Learn more >",
+    //   this.x - 135,
+    //   this.y + 70,
+    //   270,
+    //   71,
+    //   palette.white,
+    //   palette.white,
+    //   palette.main,
+    //   36,
+    //   "no"
+    // );
+    // b_learn[this.id].lock = false;
     b_learn[this.id] = new Button(
       100 + this.id,
-      "Learn more >",
-      this.x - 135,
-      this.y + 70,
-      270,
-      71,
-      palette.white,
-      palette.white,
+      "",
+      this.x - this.width / 2,
+      this.y - this.height / 2,
+      this.width,
+      this.height,
+      0,
+      0,
       palette.main,
       36,
       "no"
@@ -198,7 +217,6 @@ class CircleInfo {
     push();
     angleMode(DEGREES);
     rectMode(CENTER);
-
     rotate(-90);
     fill(125);
     circle(0, 0, 110);
@@ -209,10 +227,10 @@ class CircleInfo {
     circle(0, 0, 60);
     pop();
     fill(palette.white);
-    textSize(48);
-    text(this.value, 0, 15);
-    textSize(36);
-    text(this.name.charAt(0).toUpperCase() + this.name.slice(1), 0, 100);
+    textSize(sizes.medium - 5);
+    text(this.value, 0, 16);
+    textSize(sizes.small);
+    text(this.name.charAt(0).toUpperCase() + this.name.slice(1), 0, 105);
     pop();
     pop();
   }

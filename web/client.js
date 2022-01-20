@@ -397,7 +397,6 @@ function drawWarning() {
   textFont(fontRegular);
   textSize(sizes.medium);
   text("Your roll is about to end", 0, -150);
-  textFont(fontRegular);
   textSize(sizes.small);
   text("Less than " + 25 + "% remaning", 0, -100, 640);
   textFont(fontLight);
@@ -516,6 +515,7 @@ function drawShop() {
   text(costo_strappo + "€", 0, 100);
   textSize(sizes.small);
   fill(fillColor);
+  textFont(fontLight);
   text(classe.charAt(0).toUpperCase() + classe.slice(1), 0, 150);
   pop();
   pop();
@@ -622,9 +622,10 @@ function drawInfo(id) {
   fill(palette[trees[id].class]);
   push();
   translate(width / 2, 100);
-  textFont(fontLight);
+  textFont(fontRegular);
   textSize(sizes.big);
   text(trees[id].type.toUpperCase(), 0, 0);
+  textFont(fontLight);
   textSize(sizes.small);
   text(trees[id].provenienza, 0, 50);
   pop();
@@ -641,7 +642,7 @@ function drawInfo(id) {
   textSize(64);
   fill(palette.white);
   text(costo_strappo + " €", 0, 80);
-  textFont(fontRegular);
+  textFont(fontLight);
   textSize(sizes.small);
   fill(palette.white);
   text("per sheet", 0, 120);
@@ -698,7 +699,6 @@ function drawEmpty() {
   pop();
 
   //  Creo Bottoni
-
   b_done = new Button(
     10,
     "Done",
