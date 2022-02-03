@@ -3,8 +3,8 @@
 Servo myServo;
 
 //Definizione pin
-const unsigned int pinClk = 4;
-const unsigned int pinDt = 3;
+const unsigned int pinClk = 3;
+const unsigned int pinDt = 4;
 int const pinBtn = 12;
 int const pinServo = 11;
 
@@ -19,17 +19,9 @@ int prevDt;
 
 //  var per mantenere il valore del contatore di esempio
 int contatore;
+int prevContatore = 0;
 
-String direzione = "front"
-
-                   const float pi = 3.141592;
-
-const float D = 11.5;
-
-const float R = D / 2;
-
-const int N = 20;
-
+String direzione = "back";
 float distance = 0;
 
 // crea in memoria un posto dove salvare i messaggi che ci arrivano dalla porta seriale
@@ -54,8 +46,6 @@ void setup() {
 
   //  Inizializzo var contatore
   contatore = 0;
-
-
 }
 
 void loop() {
@@ -63,7 +53,8 @@ void loop() {
   checkEncoder();
 
   checkIncomingData();
-  azzeraCounter();
+  //azzeraCounter();
+  cambiaDirezione();
 
 }
 
@@ -80,14 +71,22 @@ void checkEncoder () {
 
       //  Se il valore di dt == clk
 
-      if (currDt == currClk && direzione == "front") {
-        contatore++;
-      } else if (direzione == "back") {
-        contatore++;
+      if (currDt == currClk) {
+        if (direzione == "front")
+          contatore++;
+      }
+      else {
+        if (direzione == "back")
+          contatore++;
       }
       //  Mostra stato di contatore
-      Serial.print("Contatore: ");
-      Serial.println(contatore);
+
+      if (contatore > prevContatore) {
+        Serial.print("Contatore: ");
+        Serial.println(contatore);
+        prevContatore = contatore;
+      }
+
       delay(5);
     }
     //  Aggiorna Valori
@@ -104,7 +103,11 @@ void btnPressed() {
     Serial.println(btnState);
 
     if (btnState) angle = 90;
-    else angle = 0;
+    else {
+      azzeraCounter();
+      angle = 0;
+    }
+
 
     myServo.write(angle);
     delay(5);
@@ -133,20 +136,8 @@ void checkIncomingData() {
 }
 
 void azzeraCounter() {
-  if (stringComplete) {
-    if (inputString == "azzera\n") {
-      contatore = 0; // aggiorna di conseguenza la variabile
-      Serial.print("Contatore: ");
-      Serial.println(contatore);
-
-      // aspetta un po' per non sovraccaricare la seriale
-      delay(5);
-
-      // ora che il messaggio è stato ricevuto, resetta la stringa per essere pronto per un nuovo messaggio
-      inputString = "";
-      stringComplete = false;
-    }
-  }
+  contatore = 0; // aggiorna di conseguenza la variabile
+  prevContatore = 0;
 }
 
 void cambiaDirezione() {
@@ -154,9 +145,7 @@ void cambiaDirezione() {
     if (inputString == "direzioneFront\n")  direzione = "front";
     else if (inputString == "direzioneBack\n") direzione = "back";
 
-    Serial.print("Direzione: ");
-    Serial.println(direzione);
-
+    azzeraCounter();
     // aspetta un po' per non sovraccaricare la seriale
     delay(5);
 

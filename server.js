@@ -92,8 +92,8 @@ io.on("connection", (socket) => {
 
     // se è un messaggio relativo al potenziometro
     if (message.includes("Contatore: ")) {
-      console.log("CONTA");
       socket.emit("distChange", message.substring(11)); // estrai i valori dalla stringa partendo dal decimo carattere (escludi c-o-n-t-a-t-o-r-e-:-spazio)
+      console.log("CONTA" + message.substring(11) + "");
     }
     if (message.includes("Btn: ")) {
       console.log("BTN");
@@ -101,12 +101,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("azzeraCounter", () => {
-    serial.write("azzera\n", (err) => {
-      console.log("Azzera");
-      if (err) return console.log("Error on write: ", err.message);
-    });
-  });
+  // socket.on("azzeraCounter", () => {
+  //   serial.write("azzera\n", (err) => {
+  //     console.log("Azzera");
+  //     if (err) return console.log("Error on write: ", err.message);
+  //   });
+  // });
 
   socket.on("direzioneFront", () => {
     serial.write("direzioneFront\n", (err) => {

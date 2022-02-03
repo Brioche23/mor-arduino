@@ -5,15 +5,15 @@ const socket = io();
 let trees = [];
 
 //  Parametri del rotolo
-const N = 20;
-const maxRoll_L = 1200;
+const N = 40;
+const maxRoll_L = 23000;
 const maxRoll_D = 12;
-const minRoll_D = 4.5;
-const lung_strappo = 11;
+const minRoll_D = 45;
+const lung_strappo = 115;
 const perc_threshold = 30;
 const max_turnings = 88.7394;
 const thickness = 0.4226;
-const turn_increment = 1 / 20;
+const turn_increment = 1 / N;
 
 let roll_in_uso = 1;
 let roll_direzione = "front";
@@ -29,6 +29,7 @@ let contatore = 0;
 let turnings = 0;
 let dist = 0;
 let preDist;
+let temp_dist = 0;
 let deltaDist;
 let square;
 let square_rounded;
@@ -52,7 +53,7 @@ let btn_width = 360;
 let btn_height = 95;
 
 //  Sentinelle per schermate
-let standby = false;
+let standby = true;
 let warning = false;
 let grazie = false;
 let shop = false;
@@ -91,23 +92,33 @@ let anim_roll;
 let anim_empty;
 let anim_card;
 
+let prev_contatore = 0;
 //  Quando l'encoder viene ruotato il client riceve il numero di incrementi
 socket.on("distChange", (message) => {
-  console.log("COUNTER:", message);
   contatore = message;
-  let temp_dist;
-  //  Divido per 2 perchè la distanza mi risulta il doppio di quella effettiva
-  temp_dist = ((Math.PI * roll_D) / (2 * N)) * contatore;
+  console.log("contatore:", contatore);
 
+  // console.log({ contatore, circonferenza_ist, incremento, temp_dist });
   //  Evito che il valore si azzeri improvvisamente quando il sensore sbaglia
-  if (!pagamentoInviato && preDist > temp_dist)
+  if (!pagamentoInviato && preDist > temp_dist && contatore < prev_contatore)
     console.log("DISTANZA NON VALIDA");
   else {
-    //  Da mettere nel DB
+    // let temp_dist;
+    //  Divido per 2 perchè la distanza mi risulta il doppio di quella effettiva
+    const circonferenza_ist = Math.PI * roll_D;
+    const incremento = circonferenza_ist / N;
+    // temp_dist = ((Math.PI * roll_D) / N) * contatore;
+    temp_dist += incremento;
+    // temp_dist = ((Math.PI * roll_D) / (2 * N)) * contatore;
+    //  ! Smette di incrementare dopo ogni strappo
+    //TODO  Da mettere nel DB
     turnings += turn_increment;
+    updateTurnings(turnings);
     console.log("turnings:", turnings);
     dist = temp_dist;
     console.log("dist:", dist);
+
+    prev_contatore = contatore;
   }
 });
 
@@ -123,13 +134,9 @@ socket.on("btnChange", (message) => {
       //  Aggiorno dati sul server
       updateStrappi(roll_index, square_rounded, prezzo);
       //  Azzero dati su arduino
-      socket.emit("azzeraCounter");
       console.log("AZZERO");
       //  Azzero tutte le variabili
-      contatore = 0;
-      square = 0;
-      square_rounded = 0;
-      prev_square_rounded = 0;
+      azzeraVariabili();
       pagamentoInviato = true;
       // if (ordineRichiesto) ordineRichiesto = false;
     }
@@ -139,6 +146,17 @@ socket.on("btnChange", (message) => {
     pagamentoInviato = false; // Il pagamento non è ancora stato inviato
   }
 });
+
+function azzeraVariabili() {
+  contatore = 0;
+  prev_contatore = 0;
+  temp_dist = 0;
+  dist = 0;
+  preDist = 0;
+  square = 0;
+  square_rounded = 0;
+  prev_square_rounded = 0;
+}
 
 //  Caricamento Assets
 function preload() {
@@ -250,6 +268,7 @@ function animate() {
 
 function draw() {
   background(palette.main); //BG
+
   if (allUsers) {
     //  Quando carico dati dell'utente da DB
     roll_lung = allUsers.rotolo_in_uso.lunghezza;
@@ -258,7 +277,7 @@ function draw() {
     roll_direzione = allUsers.rotolo_in_uso.direzione;
     next_roll = allUsers.dati_generici.next_roll;
     turnings = allUsers.rotolo_in_uso.turnings;
-    //  Cambio direzione in Arduino anche qua? TEST!!
+    //  ? Cambio direzione in Arduino anche qua? TEST!!
     //  Cambio schermate in base a sentinelle
     if (standby) drawStandby();
     else if (warning) drawWarning();
@@ -276,13 +295,15 @@ let raggio = 376;
 function drawPay() {
   //  Determino Diametro e % in base a lunghezza attuale del rotolo
   // roll_D = map(roll_lung, maxRoll_L, 0, maxRoll_D, minRoll_D);
-  roll_D = (thickness / PI) * ((max_turnings - turnings) * TWO_PI);
+  roll_D = (thickness / PI) * ((max_turnings - turnings) * TWO_PI) + minRoll_D;
+  console.log("roll_D:", roll_D);
   roll_perc = map(roll_lung, maxRoll_L, 0, 100, 0);
 
   //  Se lunghezza maggiore di 0 (c'è il rotolo)
   if (roll_lung >= 0) {
     // console.log("drawPay");
     image(images[roll_index], 0, 0, 1280, 720); //  Texture BG
+
     deltaDist = dist - preDist; //  Determino Delta tra distanze
     //  Se deltaDist != 0 --> Tolgo delta a lunghezza del rotolo
     //  Con deltaDist > 0 evito che alla fine tutta la differenza si sommi di nuovo al totale (grazie Michele :))
@@ -362,10 +383,11 @@ function drawPay() {
     //  Se la percentuale del rotolo va sotto una determinata soglia --> Avviso di rinnovo
     if (roll_perc < perc_threshold && !ordineRichiesto) {
       console.log("RICHIEDI ORDINE");
-      // alert("RICHIEDI ORDINE");
       warning = true;
       ordineRichiesto = true;
-    } else if (roll_lung == 0) empty = true;
+    } else if (roll_lung <= 0) {
+      empty = true;
+    }
   }
   div_card.hide();
   div_strappo.show(); //  Mostro TP Icon animata
@@ -736,16 +758,19 @@ function cambioRotolo(direzione_scelta) {
 
   let newRoll = {
     id: roll_in_uso,
-    lunghezza: 1200,
+    lunghezza: maxRoll_L,
     n_strappi: 0,
     turnings: 0,
     direzione: direzione_scelta,
     from: today,
   };
   console.log("Aggiorno Info DB");
+
+  updateStrappi(roll_index, square_rounded, prezzo);
   addUsedRoll(oldRoll);
   updateRotolo(newRoll);
 
+  azzeraVariabili();
   cambiaDirezioneArduino(direzione_scelta);
 
   scegliLato = false;
@@ -753,13 +778,9 @@ function cambioRotolo(direzione_scelta) {
 
 function cambiaDirezioneArduino(direzione) {
   //  Cambio direzione Arduino
-  direzione == "front"
-    ? socket.emit("direzioneFront")
-    : socket.emit("direzioneBack");
-
-  // if (direzione == "front") socket.emit("direzioneFront");
-  // else if (direzione == "back") socket.emit("direzioneBack");
-  // else console.warn("Direzione Errata");
+  if (direzione == "front") socket.emit("direzioneFront");
+  else if (direzione == "back") socket.emit("direzioneBack");
+  else console.warn("Direzione Errata");
 }
 
 function drawScegliLato() {
@@ -845,9 +866,4 @@ function mouseClicked() {
     console.log("Apri Shop");
     b_shop.clicked();
   }
-  // console.log("warning:", warning);
-  // console.log("shop:", shop);
-  // console.log("info:", info);
-  // console.log("standby:", standby);
-  // console.log("grazie:", grazie);
 }

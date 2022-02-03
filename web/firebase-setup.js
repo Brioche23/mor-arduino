@@ -7,6 +7,7 @@ let updateLunghezza;
 let updateRotolo;
 let updateTot;
 let addUsedRoll;
+let updateTurnings;
 
 // Load and initialize Firebase
 async function firebaseSetup() {
@@ -52,13 +53,16 @@ async function firebaseSetup() {
     const strappiRef = ref(myDatabase, "trees/" + id + "/strappi");
     const strappiTotRef = ref(myDatabase, "user/dati_generici/strappi_tot");
     const spesaTotRef = ref(myDatabase, "user/dati_generici/spesa_tot");
-    let n_strappi = allTrees[id].strappi + newStrappi;
-    let n_strappi_user = allUsers.dati_generici.strappi_tot + newStrappi;
-    let n_spesa_user = allUsers.dati_generici.spesa_tot + newSpesa;
+    const strappiRollRef = ref(myDatabase, "user/rotolo_in_uso/n_strappi");
+    const n_strappi = allTrees[id].strappi + newStrappi;
+    const n_strappi_user = allUsers.dati_generici.strappi_tot + newStrappi;
+    const n_spesa_user = allUsers.dati_generici.spesa_tot + newSpesa;
+    const n_strappi_new = allUsers.rotolo_in_uso.n_strappi + newStrappi;
     console.log("treesRef:", strappiRef);
     set(strappiRef, n_strappi);
     set(strappiTotRef, n_strappi_user);
     set(spesaTotRef, n_spesa_user);
+    set(strappiRollRef, n_strappi_new);
   };
 
   updateNextRoll = (nextRoll) => {
@@ -69,13 +73,18 @@ async function firebaseSetup() {
 
   updateLunghezza = (newLunghezza) => {
     const lunghezzaRef = ref(myDatabase, "user/rotolo_in_uso/lunghezza");
-    console.log("lunghezzaRef:", lunghezzaRef);
+    // // console.log("lunghezzaRef:", lunghezzaRef);
     set(lunghezzaRef, newLunghezza);
   };
 
   updateRotolo = (newRotolo) => {
     const rollRef = ref(myDatabase, "user/rotolo_in_uso");
     set(rollRef, newRotolo);
+  };
+
+  updateTurnings = (newTurnings) => {
+    const rollTurnings = ref(myDatabase, "user/rotolo_in_uso/turnings");
+    set(rollTurnings, newTurnings);
   };
 
   addUsedRoll = (usedRoll) => {
@@ -88,12 +97,12 @@ async function firebaseSetup() {
   //  Snapshot value of the ref in that moment
   onValue(trees_ref, (snapshot) => {
     allTrees = snapshot.val();
-    console.table(allTrees);
+    // // console.table(allTrees);
   });
 
   onValue(user_ref, (snapshot) => {
     allUsers = snapshot.val();
-    console.table(allUsers);
+    // // console.table(allUsers);
   });
 }
 
