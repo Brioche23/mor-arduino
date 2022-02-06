@@ -35,6 +35,8 @@ class Button {
 
   display() {
     strokeWeight(3);
+    // stroke("red");
+    // rect(this.x, this.y, this.width, this.height);
     //  Checks if mouse is over
     this.over();
   }
@@ -73,6 +75,12 @@ class Button {
       ? text(this.text, this.x, this.y + this.textOffset)
       : image(icons[this.icon], this.x, this.y);
     pop();
+
+    // push();
+    // noFill();
+    // stroke("red");
+    // rect(this.width, this.height, this.width, this.height);
+    // pop();
   }
 
   style_hover() {
@@ -136,7 +144,7 @@ class TreeCard {
     this.id = id;
     this.text = text;
     this.width = 360;
-    this.height = 341;
+    this.height = 330;
     this.x = _x;
     this.y = _y;
     this.round = 33;

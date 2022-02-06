@@ -21,7 +21,7 @@ int prevDt;
 int contatore;
 int prevContatore = 0;
 
-String direzione = "back";
+String direzione = "front";
 float distance = 0;
 
 // crea in memoria un posto dove salvare i messaggi che ci arrivano dalla porta seriale
