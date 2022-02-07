@@ -90,13 +90,19 @@ const sizes = {
 let start_frame = 0;
 let end_frame = 49;
 let didPlay = false;
-let anim_1;
+let ship_play = false;
+let anim_1, anim_4;
 let div_strappo;
 let div_empty;
 let div_card;
+let div_ship;
 let anim_roll;
 let anim_empty;
 let anim_card;
+let anim_ship;
+
+const interval_time = 2000;
+let init_time = 0;
 
 let prev_contatore = 0;
 //  Quando l'encoder viene ruotato il client riceve il numero di incrementi
@@ -189,6 +195,7 @@ function preload() {
   anim_roll = loadJSON("./00_assets/04_animations/tp_icon.json");
   anim_empty = loadJSON("./00_assets/04_animations/empty.json");
   anim_card = loadJSON("./00_assets/04_animations/card.json");
+  anim_ship = loadJSON("./00_assets/04_animations/ship.json");
 }
 
 //  PNG textures circolari
@@ -280,6 +287,23 @@ function setup() {
   anim_3 = bodymovin.loadAnimation(params);
   div_card.position(380, 160);
   div_card.hide();
+
+  //  Animazione Shipping
+  div_ship = createDiv();
+  div_ship.class("center");
+  div_ship.style("margin-left", "auto");
+  div_ship.style("display", "block");
+  div_ship.style("width", "43vw");
+  params = {
+    container: div_ship.elt,
+    loop: false,
+    autoplay: false,
+    animationData: anim_ship,
+    renderer: "svg",
+  };
+  anim_4 = bodymovin.loadAnimation(params);
+  div_ship.position(380, 160);
+  div_ship.hide();
 }
 
 //  Esegue animazione
@@ -288,6 +312,13 @@ function animate() {
   if (!didPlay) didPlay = true;
   targetFrames = [start_frame, end_frame];
   anim_1.playSegments([targetFrames], true);
+}
+
+function animate_ship() {
+  let targetFrames = [0, 0];
+  if (!ship_play) ship_play = true;
+  targetFrames = [0, 60];
+  anim_4.playSegments([targetFrames], true);
 }
 
 function draw() {
@@ -319,7 +350,6 @@ function drawPay() {
   //  Determino Diametro e % in base a lunghezza attuale del rotolo
   // roll_D = map(roll_lung, maxRoll_L, 0, maxRoll_D, minRoll_D);
   roll_D = (thickness / PI) * ((max_turnings - turnings) * TWO_PI) + minRoll_D;
-  console.log("roll_D:", roll_D);
   roll_perc = map(roll_lung, maxRoll_L, 0, 100, 0);
 
   //  Se lunghezza maggiore di 0 (c'è il rotolo)
@@ -331,6 +361,7 @@ function drawPay() {
     if (dist != preDist && deltaDist > 0) {
       roll_lung -= deltaDist;
       updateLunghezza(roll_lung); //  Aggiorno DB
+      console.log("roll_D:", roll_D);
       console.log("roll_lung:", roll_lung);
       console.log("roll_perc:", roll_perc + "%");
     }
@@ -497,13 +528,15 @@ function drawGrazie() {
     `Thanks! 
   Your next roll is on its way`,
     0,
-    0
+    margin_top
   );
   pop();
+
   //  Durata limitata
-  setInterval(() => {
+  if (millis() - init_time >= interval_time) {
     grazie = false;
-  }, 2000);
+    div_ship.hide();
+  }
 }
 
 function confermaOrdine() {
@@ -512,6 +545,9 @@ function confermaOrdine() {
   warning = false;
   info = false;
   grazie = true;
+  div_ship.show();
+  animate_ship();
+  init_time = millis();
 }
 
 function confermaCambio(id) {
