@@ -53,7 +53,7 @@ let btn_width = 360;
 let btn_height = 95;
 
 //  Sentinelle per schermate
-let standby = true;
+let standby = false;
 let warning = false;
 let grazie = false;
 let shop = false;
@@ -195,7 +195,7 @@ function preload() {
 function loadTextures(_nTrees) {
   _nTrees.forEach((t, index) => {
     images[index] = loadImage(
-      "./00_Assets/01_img/" + img_url_base + t.id + ".svg"
+      "./00_Assets/01_img/texture_bg/" + img_url_base + t.id + ".svg"
     );
     texture_rounded[index] = loadImage(
       "./00_Assets/01_img/texture_round/PNG/" + t.id + ".png"
