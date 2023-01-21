@@ -5,14 +5,14 @@ const socket = io();
 let trees = [];
 
 //  Parametri del rotolo
-const N = 40;
 const maxRoll_L = 23000;
-const maxRoll_D = 12;
+const maxRoll_D = 120;
 const minRoll_D = 45;
 const lung_strappo = 115;
 const perc_threshold = 30;
 const max_turnings = 88.7394;
 const thickness = 0.4226;
+const N = 40;
 const turn_increment = 1 / N;
 
 let roll_in_uso = 1;
@@ -116,7 +116,6 @@ socket.on("distChange", (message) => {
     console.log("DISTANZA NON VALIDA");
   else {
     // let temp_dist;
-    //  Divido per 2 perchè la distanza mi risulta il doppio di quella effettiva
     const circonferenza_ist = Math.PI * roll_D;
     console.log("roll_D:", roll_D);
     console.log(circonferenza_ist);
@@ -146,7 +145,7 @@ socket.on("btnChange", (message) => {
     //  Se il pagamento non è stato inviato --> Invio Dati
     if (!pagamentoInviato) {
       console.log("Invio dati");
-      //  Aggiorno dati sul server
+      //  Aggiorno dati sul DB
       updateStrappi(roll_index, square_rounded, prezzo);
       //  Azzero dati su arduino
       console.log("AZZERO");
@@ -302,7 +301,7 @@ function setup() {
     renderer: "svg",
   };
   anim_4 = bodymovin.loadAnimation(params);
-  div_ship.position(380, 160);
+  div_ship.position(380, 210);
   div_ship.hide();
 }
 
@@ -366,7 +365,7 @@ function drawPay() {
       console.log("roll_perc:", roll_perc + "%");
     }
     preDist = dist;
-    //  Info da mostrare in base a rotolo montato (da ottimizzare)
+    //  Info da mostrare in base a rotolo montato
     let costo_strappo;
     let fillColor;
     switch (trees[roll_index].class) {
@@ -472,12 +471,14 @@ function drawWarning() {
   textSize(sizes.medium);
   text("Your roll is about to end", 0, margin_top);
   textSize(sizes.small);
-  text("Less than " + 25 + "% remaning", 0, -100, 540);
+  text("Less than " + 25 + "% remaning", 0, -150, 540);
   textFont(fontLight);
   text(
-    "Your Treem subscription for Maple will automatically renew until you change tree.",
+    "Your Treem subscription for " +
+      allTrees[roll_in_uso].type +
+      " will automatically renew until you change tree.",
     0,
-    -30,
+    -80,
     717
   );
   pop();
@@ -515,6 +516,7 @@ function drawWarning() {
 
   bx.display();
   div_strappo.hide();
+  div_card.hide();
 }
 
 //  Ringrazimento
@@ -926,4 +928,14 @@ function mouseClicked() {
     console.log("Apri Shop");
     b_shop.clicked();
   }
+}
+
+//  Key actions
+function keyPressed() {
+  let d = day();
+  let m = month();
+  let y = year();
+
+  //  Save canvas as a png with date
+  if (key == "s" || key == "S") saveCanvas(y + "_" + m + "_" + d + "png");
 }

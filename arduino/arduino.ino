@@ -35,12 +35,13 @@ void setup() {
 
   pinMode(pinClk, INPUT);
   pinMode(pinDt, INPUT);
+  //? pinMode(pinBtn, INPUT);
 
+  //Inizializzo Servo
   myServo.attach(pinServo);
   myServo.write(0);
 
   //  Prima lettura di valori su pin
-
   prevClk = digitalRead(pinClk);
   prevDt = digitalRead(pinDt);
 
@@ -51,11 +52,8 @@ void setup() {
 void loop() {
   btnPressed();
   checkEncoder();
-
   checkIncomingData();
-  //azzeraCounter();
   cambiaDirezione();
-
 }
 
 void checkEncoder () {
@@ -64,29 +62,21 @@ void checkEncoder () {
   int currDt = digitalRead(pinDt);
 
   // Se la lettura corrente è diversa dall'ultima memorizzata
-
   if (btnState == 1) {
-
     if (currClk != prevClk) {
-
       //  Se il valore di dt == clk
-
       if (currDt == currClk) {
-        if (direzione == "front")
-          contatore++;
+        if (direzione == "front") contatore++;
       }
       else {
-        if (direzione == "back")
-          contatore++;
+        if (direzione == "back") contatore++;
       }
       //  Mostra stato di contatore
-
       if (contatore > prevContatore) {
         Serial.print("Contatore: ");
         Serial.println(contatore);
         prevContatore = contatore;
       }
-
       delay(5);
     }
     //  Aggiorna Valori
@@ -97,18 +87,21 @@ void checkEncoder () {
 
 
 void btnPressed() {
+  //  Leggo microswitch
   btnState = digitalRead(pinBtn);
+  //  Se lo stato del bottone è diverso dal precedente
   if (btnState != prevBtn) {
+    //  Stampo stato del bottone sulla porta seriale 
     Serial.print("Btn: ");
     Serial.println(btnState);
-
-    if (btnState) angle = 90;
+    //  Se il bottone è premuto => carta di credito inserita
+    if (btnState) angle = 90;   //  sblocco pignone
+    //  Altrimenti
     else {
-      azzeraCounter();
-      angle = 0;
+      azzeraCounter();  //  Azzero valore dell'encoder
+      angle = 0;        //  Blocco pignone
     }
-
-
+    //  Assegno angolo al servomotore
     myServo.write(angle);
     delay(5);
   }
@@ -118,7 +111,6 @@ void btnPressed() {
 
 // ascolta se arriva qualche messaggio dalla porta seriale
 void checkIncomingData() {
-
   // se ci sono byte in arrivo dalla seriale
   if (Serial.available() > 0) {
 

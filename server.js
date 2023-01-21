@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
     // parsa il messaggio e toglie l'acapo
     let message = data.toString().replace(/\n*/, "");
 
-    // se è un messaggio relativo al potenziometro
+    // se è un messaggio relativo all'encoder
     if (message.includes("Contatore: ")) {
       socket.emit("distChange", message.substring(11)); // estrai i valori dalla stringa partendo dal decimo carattere (escludi c-o-n-t-a-t-o-r-e-:-spazio)
       console.log("CONTA" + message.substring(11) + "");
